@@ -4,7 +4,6 @@ import Debug.Trace
 import Control.Monad.Eff
 import Benchmark.Types
 import Benchmark.Simple
-import Control.Monad
 import Data.Array
 import Data.Traversable(sequence)
 import Debug.Foreign
@@ -38,19 +37,8 @@ return function(a) {
 }
 """ :: forall a m. (Applicative m) => [m a] -> m [a]  
 
-main :: Eff (trace :: Trace, suite :: SuiteEff) Unit
-main = return (suite "suite1")
-       >>= add "old1" old1 
-       >>= add "new1" new1
-       >>= add "old10" old10
-       >>= add "new10" new10
-       >>= add "old100" old100
-       >>= add "new100" new100
-       >>= add "old1000" old1000
-       >>= add "new1000" new1000
-       >>= add "old10000" old10000
-       >>= add "new10000" new10000
-       >>= go
+main :: Eff (trace :: Trace) Unit
+main = go s
   where a1 = range 0 0
         a10 = range 0 9
         a100 = range 0 99
@@ -71,4 +59,27 @@ main = return (suite "suite1")
         new1000 = new s1000
         old10000 = old s10000
         new10000 = new s10000
+        ob1 :: Benchmark
+        ob1 = benchmark "old1" old1 
+        nb1 = benchmark "new1" new1
+        ob10 = benchmark "old10" old10
+        nb10 = benchmark "new10" new10
+        ob100 = benchmark "old100" old100
+        nb100 = benchmark "new100" new100
+        ob1000 = benchmark "old1000" old1000
+        nb1000 = benchmark "new1000" new1000
+        ob10000 = benchmark "old10000" old10000
+        nb10000 = benchmark "new10000" new10000
+        s :: Suite
+        s = suite "suite1" [ ob1
+                           , nb1
+                           , ob10
+                           , nb10
+                           , ob100
+                           , nb100
+                           , ob1000
+                           , nb1000
+                           , ob10000
+                           , nb10000
+                           ]
 

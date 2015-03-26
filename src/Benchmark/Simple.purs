@@ -1,6 +1,5 @@
 module Benchmark.Simple where
 
-import Control.Monad.Eff
 import Benchmark.Types
 import Benchmark.Suite
 import Benchmark.Benchmark
@@ -16,6 +15,7 @@ defSuiteOptions = { name : "<Unnamed suite>"
                   , onAbort : msgSuiteCB "Suite aborted"
                   , onError : msgSuiteCB "Suite failed"
                   , onReset : msgSuiteCB "Suite reset"
+                  , benchmarks : []
                   }
   where cycleCB :: SuiteCB
         cycleCB event = do
@@ -33,10 +33,13 @@ defSuiteOptions = { name : "<Unnamed suite>"
           trace $ "Running suite " ++ sname ++ " for " ++ platform
           return true
           where sname = sprops.name
-                sprops = sproperties $ currentTarget e
+                sprops = properties suite
+                suite = currentTarget e
 
-suite :: String -> Suite
-suite name = suiteWithOptions defSuiteOptions { name = name }
+suite :: String -> [Benchmark] -> Suite
+suite name benchmarks = suiteWithOptions defSuiteOptions { name = name
+                                                         , benchmarks = benchmarks
+                                                         }
 
 defBenchmarkOptions :: BenchmarkOptions
 defBenchmarkOptions =  { async : false
@@ -70,9 +73,6 @@ defBenchmarkOptions =  { async : false
 
 benchmark :: String -> CB -> Benchmark
 benchmark name fn = benchmarkWithOptions defBenchmarkOptions { fn = fn
-                                                        , name = name }
-
-add :: forall e. String -> CB -> Suite -> Eff (suite :: SuiteEff |e) Suite
-add name cb = push (benchmark name cb)
+                                                             , name = name }
 
 go = run

@@ -5,8 +5,6 @@ import Debug.Trace
 
 foreign import data Event :: *
 foreign import data Benchmark :: *
-foreign import data SuiteEff :: !
-
 
 type BenchmarkCB = forall e. Benchmark -> Eff (trace :: Trace |e) Boolean
 
@@ -57,6 +55,7 @@ type SuiteOptions = { name :: String
                     , onError :: SuiteCB
                     , onReset :: SuiteCB
                     , onStart :: SuiteCB
+                    , benchmarks :: [Benchmark]
                     }
 
 

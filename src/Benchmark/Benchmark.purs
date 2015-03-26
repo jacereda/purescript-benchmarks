@@ -30,4 +30,3 @@ function stats(b) {
   return b.stats;
 }
 """ :: Benchmark -> Stats
-

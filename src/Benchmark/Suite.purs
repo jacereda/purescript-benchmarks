@@ -15,22 +15,13 @@ function suiteWithOptions(oo) {
   o.onError = function(e) { return oo.onError(e)(); };
   o.onReset = function(e) { return oo.onReset(e)(); };
   o.onStart = function(e) { return oo.onStart(e)(); };
+  o.benchmarks = undefined;
   var s = new bm.Suite(o);
+  for (var b in oo.benchmarks)
+    s.push(oo.benchmarks[b]);
   return s;
 }
 """ :: SuiteOptions -> Suite
-
-foreign import push
-"""
-function push(b) {
-  return function(s) {
-    return function() {
-      s.push(b);
-      return s;
-    };
-  };
-}
-""" :: forall e e2. Benchmark -> Suite -> Eff (suite :: SuiteEff | e) Suite
 
 foreign import run
 """
@@ -39,9 +30,9 @@ function run(s) {
     s.run();
   };
 }
-""" :: forall e. Suite -> Eff (suite :: SuiteEff | e) Unit
+""" :: forall e. Suite -> Eff e Unit
 
-sproperties :: Suite -> SuiteProperties
-sproperties (Suite s) = s
+properties :: Suite -> SuiteProperties
+properties (Suite s) = s
 
 
