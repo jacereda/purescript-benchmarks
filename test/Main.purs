@@ -10,16 +10,6 @@ import Debug.Foreign
 
 type Variant = forall e. [Eff (|e) Number] -> CB
 
-old :: Variant
-old s _ = do
-  let r = sequence s
-  return unit
-
-new :: Variant
-new s _ = do
-  let r = asequence s
-  return unit
-
 foreign import asequence
 """
 function asequence(m) {
@@ -38,11 +28,13 @@ return function(a) {
 main :: Eff (trace :: Trace) Unit
 main = go s
   where s :: Suite
-        s = suite "suite1" bms
+        s = suite "suite1" $ asequencebms ++ sequencebms
         vals :: [Number]
-        vals = [1, 10, 100, 1000]
-        bms :: [Benchmark]
-        bms = (bm "old" old <$> vals) ++ (bm "new" new <$> vals)
+        vals = [1, 10, 100, 1000, 10000]
+        sequencebms :: [Benchmark]
+        sequencebms = (bm "sequence" tsequence <$> vals)
+        asequencebms :: [Benchmark]
+        asequencebms =  (bm "asequence" tasequence <$> vals)
         bm :: String -> Variant -> Number -> Benchmark
         bm prefix variant n = benchmark name cb
           where cb :: CB
@@ -52,4 +44,14 @@ main = go s
         pass :: Number -> Eff () Number
         pass x = do
           return x
+        tsequence :: Variant
+        tsequence s _ = do
+          let r = sequence s
+          return unit
+        tasequence :: Variant
+        tasequence s _ = do
+          let r = asequence s
+          return unit
+
+
 
