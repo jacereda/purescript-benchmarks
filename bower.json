@@ -1,0 +1,21 @@
+{
+  "name": "purescript-benchmark",
+  "version": "0.0.1",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+      "benchmark": "*"
+  },
+  "devDependencies": {
+      "purescript-foldable-traversable": "*",
+      "purescript-debug-foreign": "*",
+      "purescript-arrays": "*"
+  }
+}

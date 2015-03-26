@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "dependencies": {
+      "platform": "*",
+      "microtime": "*",
+      "benchmark": "~1.0.0"
+  }
+}
