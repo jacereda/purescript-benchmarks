@@ -18,7 +18,7 @@ function suiteWithOptions(oo) {
   o.benchmarks = undefined;
   var s = new bm.Suite(o);
   for (var b in oo.benchmarks)
-    s.push(oo.benchmarks[b]);
+    s.add(oo.benchmarks[b]);
   return s;
 }
 """ :: SuiteOptions -> Suite
