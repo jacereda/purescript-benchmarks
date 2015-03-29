@@ -4,54 +4,40 @@ import Debug.Trace
 import Control.Monad.Eff
 import Benchmark.Types
 import Benchmark.Simple
+import Data.Maybe
 import Data.Array(range, map)
 import Data.Traversable(sequence)
+import Data.Foldable(foldl)
 import Debug.Foreign
 
-type Variant = forall e. [Eff (|e) Number] -> CB
+type Sequence = forall a m. (Applicative m) => [m a] -> m [a]
 
-foreign import asequence
-"""
-function asequence(m) {
-return function(a) {
-  return function() {
-    var n = a.length;
-    var res = new Array(n);
-    for (var i = 0; i < n; i++)
-      res[i] = a[i](m);
-    return res;
+foreign import apush """
+function apush(a) {
+  return function(x) {
+    a.push(x);
+    return a;
   };
-};
-}
-""" :: forall a m. (Applicative m) => [m a] -> m [a]  
+}""" :: forall a. [a] -> a -> [a]
+
+asequence :: forall a m. (Applicative m) => [m a] -> m [a]
+asequence = foldl step (pure [])
+  where step :: m [a] -> m a -> m [a]
+        step sofar x = apush <$> sofar <*> x
 
 main :: Eff (trace :: Trace) Unit
-main = go s
+main = do
+ go s
   where s :: Suite
-        s = suite "suite1" $ asequencebms ++ sequencebms
-        vals :: [Number]
-        vals = [1, 10, 100, 1000, 10000]
-        sequencebms :: [Benchmark]
-        sequencebms = (bm "sequence" tsequence <$> vals)
-        asequencebms :: [Benchmark]
-        asequencebms =  (bm "asequence" tasequence <$> vals)
-        bm :: String -> Variant -> Number -> Benchmark
-        bm prefix variant n = benchmark name cb
+        s = suite "suite1" ( (bm "asequence" asequence <$> vals)
+                             ++ (bm "sequence" sequence <$> vals)                             
+                           )
+        vals = [1,10,100,1000]
+        bm :: String -> Sequence -> Number -> Benchmark
+        bm prefix seq n = benchmark (prefix ++ show n) cb
           where cb :: CB
-                cb = variant (map pass (range 1 n))
-                name :: String
-                name = prefix ++ show n
-        pass :: Number -> Eff () Number
-        pass x = do
-          return x
-        tsequence :: Variant
-        tsequence s _ = do
-          let r = sequence s
-          return unit
-        tasequence :: Variant
-        tasequence s _ = do
-          let r = asequence s
-          return unit
-
-
-
+                cb _ = do
+                  s <- seq work
+                  return unit
+                work :: forall e. [Eff (|e) Unit]
+                work = map (const (return unit)) (range 1 n)
