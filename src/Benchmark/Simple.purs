@@ -56,20 +56,16 @@ defBenchmarkOptions =  { async : false
                        , onAbort : msgBenchmarkCB "Benchmark aborted"
                        , onError : msgBenchmarkCB "Benchmark failed"
                        , onReset : msgBenchmarkCB "Benchmark reset"
-                       , fn : noopCB "fn"
+                       , fn : noopCB
                        }
   where noopBenchmarkCB :: BenchmarkCB
-        noopBenchmarkCB b = do
-          return true
+        noopBenchmarkCB b = return true
         msgBenchmarkCB :: String -> BenchmarkCB
         msgBenchmarkCB msg b = do
           trace msg
           return true
-          
-        noopCB :: String -> CB
-        noopCB msg _ = do
---          trace msg
-          return unit
+        noopCB :: CB
+        noopCB _ = return unit
 
 benchmark :: String -> CB -> Benchmark
 benchmark name fn = benchmarkWithOptions defBenchmarkOptions { fn = fn
