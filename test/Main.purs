@@ -27,17 +27,15 @@ asequence = foldl step (pure [])
 
 main :: Eff (trace :: Trace) Unit
 main = do
- go s
+  go s
   where s :: Suite
         s = suite "suite1" ( (bm "asequence" asequence <$> vals)
                              ++ (bm "sequence" sequence <$> vals)                             
                            )
         vals = [1,10,100,1000]
         bm :: String -> Sequence -> Number -> Benchmark
-        bm prefix seq n = benchmark (prefix ++ show n) cb
-          where cb :: CB
-                cb _ = do
-                  s <- seq work
-                  return unit
-                work :: forall e. [Eff (|e) Unit]
+        bm prefix seq n = benchmark (prefix ++ show n) \_ -> do
+          s <- seq work
+          return unit
+          where work :: forall e. [Eff (|e) Unit]
                 work = map (const (return unit)) (range 1 n)

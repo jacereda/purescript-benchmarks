@@ -10,7 +10,7 @@ type BenchmarkCB = forall e. Benchmark -> Eff (trace :: Trace |e) Boolean
 
 type SuiteCB = Event -> Eff (trace :: Trace) Boolean
 
-type CB = forall e. Number -> Eff (|e) Unit
+type CB e = Number -> Eff e Unit
 
 type Stats =  { deviation :: Number
               , mean :: Number
@@ -45,7 +45,7 @@ type BenchmarkOptions = { async :: Boolean
                         , onError :: BenchmarkCB
                         , onReset :: BenchmarkCB
                         , onStart :: BenchmarkCB
-                        , fn :: CB
+                        , fn :: CB ()
                         }
 
 type SuiteOptions = { name :: String

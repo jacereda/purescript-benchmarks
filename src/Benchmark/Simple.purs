@@ -64,11 +64,17 @@ defBenchmarkOptions =  { async : false
         msgBenchmarkCB msg b = do
           trace msg
           return true
-        noopCB :: CB
+        noopCB :: CB ()
         noopCB _ = return unit
 
-benchmark :: String -> CB -> Benchmark
-benchmark name fn = benchmarkWithOptions defBenchmarkOptions { fn = fn
+benchmark :: forall e. String -> CB e -> Benchmark
+benchmark name fn = benchmarkWithOptions defBenchmarkOptions { fn = toCB fn
                                                              , name = name }
 
 go = run
+
+foreign import toCB
+"""
+function toCB(f) {
+  return f;
+}""" :: forall a. CB a -> CB ()
