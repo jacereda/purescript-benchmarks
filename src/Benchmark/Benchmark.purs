@@ -13,7 +13,7 @@ function benchmarkWithOptions(oo) {
   o.onError = oo.onError(o);
   o.onReset = oo.onReset(o);
   o.onStart = oo.onStart(o);
-  o.fn = oo.fn(0);
+  o.fn = function() { oo.fn(0)(); }
   return new bm.Benchmark(o);
 }
 """ :: BenchmarkOptions -> Benchmark
