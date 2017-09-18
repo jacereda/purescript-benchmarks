@@ -11,6 +11,10 @@
     "bower_components",
     "output"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jacereda/purescript-benchmark.git"
+  },
   "dependencies": {
     "purescript-clock": "^1.0.1",
     "purescript-arrays": "^4.2.0",
