@@ -1,41 +1,30 @@
 module Test.Main where
 
-import Debug.Trace
-import Control.Monad.Eff
-import Benchmark.Types
-import Benchmark.Simple
-import Data.Maybe
-import Data.Array(range, map)
-import Data.Traversable(sequence)
-import Data.Foldable(foldl)
-import Debug.Foreign
+import Prelude
 
-type Sequence = forall a m. (Applicative m) => [m a] -> m [a]
+import Benchmark (ReportEff, benchmark, variant, report)
+import Data.Array (replicate)
+import Data.Foldable (foldMap, foldr)
+import Data.Monoid.Additive (Additive(..))
+import Data.Newtype (ala)
 
-foreign import apush """
-function apush(a) {
-  return function(x) {
-    a.push(x);
-    return a;
-  };
-}""" :: forall a. [a] -> a -> [a]
-
-asequence :: forall a m. (Applicative m) => [m a] -> m [a]
-asequence = foldl step (pure [])
-  where step :: m [a] -> m a -> m [a]
-        step sofar x = apush <$> sofar <*> x
-
-main :: Eff (trace :: Trace) Unit
+main :: forall e. ReportEff e Unit
 main = do
-  go s
-  where s :: Suite
-        s = suite "suite1" ( (bm "asequence" asequence <$> vals)
-                             ++ (bm "sequence" sequence <$> vals)                             
-                           )
-        vals = [1,10,100,1000]
-        bm :: String -> Sequence -> Number -> Benchmark
-        bm prefix seq n = benchmark (prefix ++ show n) \_ -> do
-          s <- seq work
-          return unit
-          where work :: forall e. [Eff (|e) Unit]
-                work = map (const (return unit)) (range 1 n)
+  let a1000 = replicate 1000 1
+      a2000 = replicate 2000 1
+      a3000 = replicate 3000 1
+      a4000 = replicate 4000 1
+      a5000 = replicate 5000 1
+      fr = foldr (+) 0
+      fm = ala Additive foldMap
+  report =<< benchmark "test" [ variant "foldr1000" fr a1000
+                              , variant "foldr2000" fr a2000
+                              , variant "foldr3000" fr a3000
+                              , variant "foldr4000" fr a4000
+                              , variant "foldr5000" fr a5000 
+                              , variant "foldMap1000" fm a1000
+                              , variant "foldMap2000" fm a2000
+                              , variant "foldMap3000" fm a3000
+                              , variant "foldMap4000" fm a4000
+                              , variant "foldMap5000" fm a5000
+                              ]

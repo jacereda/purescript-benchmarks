@@ -11,11 +11,15 @@
     "output"
   ],
   "dependencies": {
-      "benchmark": "*"
-  },
-  "devDependencies": {
-      "purescript-foldable-traversable": "*",
-      "purescript-debug-foreign": "*",
-      "purescript-arrays": "*"
+    "purescript-clock": "^1.0.1",
+    "purescript-arrays": "^4.2.0",
+    "purescript-console": "^3.0.0",
+    "purescript-eff": "^3.1.0",
+    "purescript-statistics": "^0.1.2",
+    "purescript-monad-loops": "^0.4.0",
+    "purescript-refs": "^3.0.0",
+    "purescript-format": "^3.0.0",
+    "purescript-debug": "^3.0.0",
+    "purescript-node-fs": "^4.0.0"
   }
 }
