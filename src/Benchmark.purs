@@ -114,6 +114,7 @@ report r = do
                        hAxis: {title: 'Nanoseconds', minValue:0},
                        vAxis: {title: 'Variant'},
                        legend:{position:'none'},
+                       explorer:{},
                       };
         new google.visualization.BarChart(document.getElementById('overview')).draw(data, options);
       });
@@ -129,6 +130,7 @@ report r = do
                        hAxis: {title: 'Iterations', minValue:0, maxValue:""" <> show maxx <> """},
                        vAxis: {title: 'Nanoseconds', minValue:0, maxValue:""" <> show maxy <> """},
                        trendlines: { 0: { type: 'linear', showR2: true, visibleInLegend: true } },
+                       explorer:{},
                       };
         new google.visualization.ScatterChart(document.getElementById('""" <> v.name <> """')).draw(data, options);
       });
