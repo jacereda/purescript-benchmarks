@@ -17,14 +17,23 @@ main = do
       a5000 = replicate 5000 1
       fr = foldr (+) 0
       fm = ala Additive foldMap
-  report =<< benchmark "test" [ variant "foldr1000" fr a1000
-                              , variant "foldr2000" fr a2000
-                              , variant "foldr3000" fr a3000
-                              , variant "foldr4000" fr a4000
-                              , variant "foldr5000" fr a5000 
-                              , variant "foldMap1000" fm a1000
-                              , variant "foldMap2000" fm a2000
-                              , variant "foldMap3000" fm a3000
-                              , variant "foldMap4000" fm a4000
-                              , variant "foldMap5000" fm a5000
-                              ]
+  report =<< benchmark "test1" [ variant "foldr1000" fr a1000
+                               , variant "foldr2000" fr a2000
+                               , variant "foldr3000" fr a3000
+                               , variant "foldr4000" fr a4000
+                               , variant "foldr5000" fr a5000 
+                               , variant "foldMap1000" fm a1000
+                               , variant "foldMap2000" fm a2000
+                               , variant "foldMap3000" fm a3000
+                               , variant "foldMap4000" fm a4000
+                               , variant "foldMap5000" fm a5000
+                               ]
+  let loop 0 = 0
+      loop n = loop (n - 1)
+  report =<< benchmark "test2" [ variant "loop 10" loop 10
+                               , variant "loop 100" loop 100
+                               , variant "loop 1000" loop 1000
+                               , variant "loop 10000" loop 10000
+                               , variant "loop 100000" loop 100000
+                               , variant "loop 1000000" loop 1000000
+                               ]

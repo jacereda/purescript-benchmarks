@@ -7,7 +7,7 @@ import Control.Monad.Eff.Console (CONSOLE, log)
 import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Ref (REF, newRef, writeRef, readRef)
 import Control.Monad.Rec.Loops (whileM)
-import Data.Array (length)
+import Data.Array (drop, length)
 import Data.Foldable (maximum)
 import Data.Int (toNumber, round)
 import Data.Maybe (fromMaybe)
@@ -39,18 +39,19 @@ type BenchRes = { name :: String
                 , results :: Array VarRes
                 }
 
-variant' :: forall a b e. String -> (a -> b) -> a -> Eff (clock :: CLOCK, ref :: REF | e) VarRes
-variant' name fn input = do
-  cnt <- newRef 1.0
+variant' :: forall a b e. String -> (a -> b) -> a -> Number -> Eff (clock :: CLOCK, ref :: REF | e) VarRes
+variant' name fn input limit = do
+  let mfi = measure fn input
   t0 <- nanoseconds
   let under t = do
         t1 <- nanoseconds
         pure $ t1 - t0 < t
-  xys <- whileM (under 5000000000.0) do
+  cnt <- newRef 1.0
+  rawxys <- whileM (under limit) do
     times <- readRef cnt
     let itimes = round times
         ftimes = toNumber itimes
-        m = measure fn input itimes
+        m = mfi itimes
     te <- do
         s <- nanoseconds
         m
@@ -58,6 +59,7 @@ variant' name fn input = do
         pure $ e - s
     writeRef cnt $ max (ftimes + 1.0) (ftimes * 1.05)
     pure {x: ftimes, y: te}
+  let xys = drop (length rawxys / 3) rawxys
   let reg = linreg xys
       fm f = fromMaybe 0.0 $ f <$> reg
       a = fm get1
@@ -66,25 +68,34 @@ variant' name fn input = do
   pure {name: name, a: a, b: b, r: r, xys:xys}
 
 
-variant :: forall a b e. String -> (a -> b) -> a -> BenchEff e VarRes
-variant name fn input = do
-  res <- variant' name fn input
+variant :: forall a b e. String -> (a -> b) -> a -> Number -> BenchEff e VarRes
+variant name fn input limit = do
+  res <- variant' name fn input limit
   let nshow = format (width 16 <> precision 3)
   log $ format (width 16) name <> " "
     <> nshow res.b <> " ns "
     <> nshow (res.r * res.r) <> " r2 "
     <> nshow (1000000000.0 / res.b) <> " ops/s "
   pure res
+
   
-benchmark :: forall e. String -> Array (BenchEff e VarRes) -> BenchEff e BenchRes
-benchmark name variants = do
+  
+benchmarkFor :: forall e. Number -> String -> Array (Number -> BenchEff e VarRes) -> BenchEff e BenchRes
+benchmarkFor limit name variants = do
   log $ "Running benchmark " <> name
-  _ <- variant "warmup" id 0
-  results <- sequence $ variants
+  let nslimit = limit * 1000000000.0
+  _ <- variant "warmup" id 0 nslimit
+  results <- sequence $ (_ $ nslimit) <$> variants
   pure { name: name, results: results }
 
-report :: forall e. BenchRes -> Eff (fs :: FS, exception :: EXCEPTION | e) Unit
-report r = writeTextFile UTF8 (r.name <> "-benchmark.html") (header <> overview <> charts <> footer)
+benchmark :: forall e. String -> Array (Number -> BenchEff e VarRes) -> BenchEff e BenchRes
+benchmark = benchmarkFor 5.0
+
+report :: forall e. BenchRes -> Eff (console :: CONSOLE, fs :: FS, exception :: EXCEPTION | e) Unit
+report r = do
+  let out = r.name <> "-benchmark.html"
+  writeTextFile UTF8 (r.name <> "-benchmark.html") (header <> overview <> charts <> footer)
+  log $ "Report written to " <> out
   where header = """
 <html>
   <head>
