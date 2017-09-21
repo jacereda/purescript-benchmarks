@@ -22,7 +22,7 @@ import Node.FS.Sync (writeTextFile)
 import System.Clock (CLOCK, nanoseconds)
 import Text.Format (format, width, precision)
 
-foreign import measure :: forall a b e. (a -> b) -> a -> Int -> Eff (clock :: CLOCK | e) Unit
+foreign import measure :: forall b e. (Unit -> b) -> Int -> Eff (clock :: CLOCK | e) Unit
 
 type BenchEff e = Eff (console :: CONSOLE, clock :: CLOCK, ref :: REF | e)
 
@@ -39,9 +39,9 @@ type BenchRes = { name :: String
                 , results :: Array VarRes
                 }
 
-variant' :: forall a b e. String -> (a -> b) -> a -> Number -> Eff (clock :: CLOCK, ref :: REF | e) VarRes
-variant' name fn input limit = do
-  let mfi = measure fn input
+variant' :: forall b e. String -> (Unit -> b) -> Number -> Eff (clock :: CLOCK, ref :: REF | e) VarRes
+variant' name fn limit = do
+  let mfi = measure fn
   t0 <- nanoseconds
   let under t = do
         t1 <- nanoseconds
@@ -70,7 +70,7 @@ variant' name fn input limit = do
 
 variant :: forall a b e. String -> (a -> b) -> a -> Number -> BenchEff e VarRes
 variant name fn input limit = do
-  res <- variant' name fn input limit
+  res <- variant' name (\_ -> fn input) limit
   let nshow = format (width 16 <> precision 3)
   log $ format (width 16) name <> " "
     <> nshow res.b <> " ns "
