@@ -67,19 +67,19 @@ variant' name fn limit = do
       r = fm get3
   pure {name: name, a: a, b: b, r: r, xys:xys}
 
-
-variant :: forall a b e. String -> (a -> b) -> a -> Number -> BenchEff e VarRes
-variant name fn input limit = do
-  res <- variant' name (\_ -> fn input) limit
+  
+summary :: forall e. VarRes -> Eff (console :: CONSOLE | e) VarRes
+summary res = do
   let nshow = format (width 16 <> precision 3)
-  log $ format (width 16) name <> " "
+  log $ format (width 16) res.name <> " "
     <> nshow res.b <> " ns "
     <> nshow (res.r * res.r) <> " r2 "
     <> nshow (1000000000.0 / res.b) <> " ops/s "
   pure res
 
-  
-  
+variant :: forall a b e. String -> (a -> b) -> a -> Number -> BenchEff e VarRes
+variant name fn input = summary <=< variant' name (\_ -> fn input)
+
 benchmarkFor :: forall e. Number -> String -> Array (Number -> BenchEff e VarRes) -> BenchEff e BenchRes
 benchmarkFor limit name variants = do
   log $ "Running benchmark " <> name
