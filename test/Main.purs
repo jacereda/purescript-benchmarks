@@ -2,38 +2,49 @@ module Test.Main where
 
 import Prelude
 
-import Benchmark (ReportEff, benchmark, variant, report)
-import Data.Array (replicate)
-import Data.Foldable (foldMap, foldr)
-import Data.Monoid.Additive (Additive(..))
-import Data.Newtype (ala)
+import Benchmark (benchmark, variant, input, Input, BenchEff)
+import Benchmark.Report (ReportEff, report)
+import Control.Monad.Eff (Eff)
+import Data.Array (foldl, range, replicate, zipWith)
+import Data.Foldable (foldr, sum)
+import Data.Traversable (sequence)
 
-main :: forall e. ReportEff e Unit
+main :: forall e. Eff (ReportEff (BenchEff e)) Unit
 main = do
-  let a1000 = replicate 1000 1
-      a2000 = replicate 2000 1
-      a3000 = replicate 3000 1
-      a4000 = replicate 4000 1
-      a5000 = replicate 5000 1
-      fr = foldr (+) 0
-      fm = ala Additive foldMap
-  report =<< benchmark "test1" [ variant "foldr1000" fr a1000
-                               , variant "foldr2000" fr a2000
-                               , variant "foldr3000" fr a3000
-                               , variant "foldr4000" fr a4000
-                               , variant "foldr5000" fr a5000 
-                               , variant "foldMap1000" fm a1000
-                               , variant "foldMap2000" fm a2000
-                               , variant "foldMap3000" fm a3000
-                               , variant "foldMap4000" fm a4000
-                               , variant "foldMap5000" fm a5000
-                               ]
-  let loop 0 = 0
-      loop n = loop (n - 1)
-  report =<< benchmark "test2" [ variant "loop 10" loop 10
-                               , variant "loop 100" loop 100
-                               , variant "loop 1000" loop 1000
-                               , variant "loop 10000" loop 10000
-                               , variant "loop 100000" loop 100000
-                               , variant "loop 1000000" loop 1000000
-                               ]
+  let frep :: Int -> Array Number
+      frep = flip replicate 0.0
+      irep :: Int -> Array Int
+      irep = flip replicate 0
+      f1000 :: Input (Array Number)
+      f1000 = input "1000flt" $ frep 1000
+      finputs = [  input "1000flt" $ frep 1000
+                , input "2000flt" $ frep 2000
+                ]
+      iinputs = [ input "1000int" $ irep 1000
+                , input "2000int" $ irep 2000
+                ]
+      ivariants = [ variant "sum" \x -> sum x
+                  , variant "foldl" $ foldl (+) zero 
+                  , variant "foldr" $ foldr (+) zero
+                 ]
+      fvariants = [ variant "sum" \x -> sum x
+                  , variant "foldl" $ foldl (+) zero 
+                  , variant "foldr" $ foldr (+) zero
+                  ]
+      inputs = [ input "1000" $ replicate 1000 one
+               , input "2000" $ replicate 2000 one
+               ]
+      variants = [ variant "foldl" $ foldl (+) 0
+                 , variant "foldr" $ foldr (+) 0
+                 ]
+      full = zipWith ($) variants inputs
+  let id1000 :: forall a. Array (a -> a)
+      id1000 = replicate 100 id
+      fempty :: Input (Array Number)
+      fempty = input "empty" []
+  report =<< sequence [ benchmark "itest" (ivariants <*> iinputs)
+                      , benchmark "ftest" (fvariants <*> finputs)
+                      , benchmark "apply" [ variant "apply" (apply id1000) f1000 ]
+                      , benchmark "append" [ variant "append" (\x -> append x x) f1000 ]
+                      , benchmark "range" [ variant "range" (\_ -> range 0 1000) f1000 ]
+                      ]

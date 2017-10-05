@@ -24,6 +24,13 @@
     "purescript-monad-loops": "^0.4.0",
     "purescript-refs": "^3.0.0",
     "purescript-format": "^3.0.0",
-    "purescript-node-fs": "^4.0.0"
+    "purescript-node-fs": "^4.0.0",
+    "purescript-record": "^0.2.1",
+    "purescript-simple-json": "^1.0.0",
+    "purescript-node-child-process": "^4.0.0",
+    "purescript-openurl": "jacereda/purescript-openurl"
+  },
+  "resolutions": {
+    "purescript-record": "^0.2.1"
   }
 }

@@ -1,5 +1,7 @@
 "use strict";
 
+//require('v8').setFlagsFromString('--minimal');
+//require('v8').setFlagsFromString('--trace-deopt');
 exports.measure = function(f) {
   return function(times) {
     return function() {
@@ -8,3 +10,4 @@ exports.measure = function(f) {
     };
   };
 };
+
